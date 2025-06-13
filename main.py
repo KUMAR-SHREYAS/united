@@ -6,6 +6,8 @@ from datetime import datetime
 from pydantic import BaseModel
 import json
 import os
+from fastapi.middleware.cors import CORSMiddleware
+
 # Database connection details
 MYSQL_HOST = os.getenv("MYSQL_HOST")
 MYSQL_PORT = os.getenv("MYSQL_PORT")
@@ -67,6 +69,19 @@ class UploadRecordCreate(BaseModel):
     extracted_info: dict
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+    "https://ed45-152-58-159-246.ngrok-free.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"]
+)
 
 # Dependency to get DB session
 def get_db():

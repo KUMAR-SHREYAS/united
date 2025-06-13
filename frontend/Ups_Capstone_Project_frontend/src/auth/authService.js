@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:8000/auth'; // Base URL for your FastAPI authentication endpoints
+import { API_BASE_URL } from '../config';
+
+const API_URL = `${API_BASE_URL}/auth`; // Base URL for your FastAPI authentication endpoints
 
 const login = async (username, password) => {
     const details = new URLSearchParams();

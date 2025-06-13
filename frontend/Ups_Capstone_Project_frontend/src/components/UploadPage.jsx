@@ -32,6 +32,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { API_BASE_URL } from '../config';
 // import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 // import { mockOcrApi } from '../utils/api';
 
@@ -196,7 +197,7 @@ const UploadPage = () => {
     });
 
     try {
-      const response = await fetch('http://localhost:8000/upload-images-batch/', {
+      const response = await fetch(`${API_BASE_URL}/upload-images-batch/`, {
         method: 'POST',
         body: formData,
       });

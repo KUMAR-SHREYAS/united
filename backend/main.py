@@ -22,6 +22,7 @@ load_dotenv()
 
 origins = [
     "http://localhost:5174",
+    "https://ed45-152-58-159-246.ngrok-free.app",# frontend url
     "http://127.0.0.1:5174", # Explicitly add 127.0.0.1 for frontend
     "http://localhost:3000", # Add frontend development server origin
     # Add more origins here if needed
