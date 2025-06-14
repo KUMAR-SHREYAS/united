@@ -4,10 +4,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status, APIRouter
 from sqlalchemy.orm import Session
 
-from backend.auth.utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_password_hash, verify_password
-from backend.database import get_db
-from backend.schemas import Token, UserCreate, UserLogin, UserCredentialSchema
-from backend.models import UserCredential
+from ..auth.utils import create_access_token, get_password_hash, verify_password
+from ..database import get_db
+from ..schemas import Token, UserCreate, UserLogin, UserCredentialSchema
+from ..models import UserCredential
+from ..config import settings # Import settings for ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
     # Promote the first user to admin with approved status
     role = "admin" if user_count == 0 else "user"
-    status = "approved" if user_count == 0 else "pending"
+    user_status = "approved" if user_count == 0 else "pending"
 
     hashed_password = get_password_hash(user.password)
 
@@ -39,7 +40,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         hashed_password=hashed_password,
         role=role,
-        status=status
+        status=user_status
     )
 
     db.add(db_user)
@@ -72,7 +73,7 @@ async def login_for_access_token(
             detail="Account has been rejected."
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username, "email": user.email, "role": user.role, "status": user.status}, expires_delta=access_token_expires
     )

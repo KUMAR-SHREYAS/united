@@ -27,12 +27,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-<<<<<<< HEAD
 import { API_BASE_URL } from '../config';
 // import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 // import { mockOcrApi } from '../utils/api';
-=======
->>>>>>> temp-gemini
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_BATCH_UPLOAD_LIMIT = 10;
@@ -163,27 +160,36 @@ const UploadPage = () => {
     setSuccessMessage('');
     setProcessedResults([]);
 
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
+    const newProcessedResults = [];
+    let allFilesSuccess = true;
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/upload-images-batch/`, {
-        method: 'POST',
-        body: formData,
-      });
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file); // The /extract endpoint expects a single 'file'
 
-      const results = await response.json();
-      if (!response.ok) throw new Error(results.detail || 'Batch upload failed');
+      try {
+        const response = await fetch(`${API_BASE_URL}/extract`, {
+          method: 'POST',
+          body: formData,
+        });
 
-      setProcessedResults(results);
-      const allSuccess = results.every(r => r.upload_status === 'successful' && r.extract_status === 'successful');
-      setSuccessMessage(allSuccess ? 'All files uploaded and processed successfully!' : 'Some files failed. See below.');
+        const result = await response.json();
 
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+        if (!response.ok) {
+          throw new Error(result.detail || `Processing failed for ${file.name}`);
+        }
+        // The backend /extract endpoint returns the ShippingExtraction object directly
+        newProcessedResults.push({ filename: file.name, status: 'success', data: result });
+      } catch (err) {
+        allFilesSuccess = false;
+        newProcessedResults.push({ filename: file.name, status: 'failed', error: err.message });
+        console.error(`Error processing ${file.name}:`, err);
+      }
     }
+
+    setProcessedResults(newProcessedResults);
+    setSuccessMessage(allFilesSuccess ? 'All files processed successfully!' : 'Some files failed. See below for details.');
+    setLoading(false);
   };
 
   const clearFiles = () => {
@@ -252,23 +258,62 @@ const UploadPage = () => {
           >
             {loading ? 'Uploading...' : 'Upload and Extract All'}
           </Button>
-
-
-
         </Box>
 
         {processedResults.length > 0 && (
           <Box mt={4}>
-            <Typography variant="h5">Processing Results</Typography>
-            {processedResults.map((res, idx) => (
-              <Box key={idx} mt={2} p={2} border={1} borderColor={res.upload_status === 'failed' ? 'error.main' : 'grey.300'}>
-                <Typography fontWeight="bold" color={res.upload_status === 'failed' ? 'error' : 'text.primary'}>
-                  {res.filename} - {res.upload_status === 'failed' ? 'Upload Failed' : res.upload_status}
-                </Typography>
-                {res.error && <Typography color="error">Error: {res.error}</Typography>}
-                {res.extracted_info && <JsonToTable json={res.extracted_info} />}
-              </Box>
-            ))}
+            <Typography variant="h5" mb={2}>Extraction Results</Typography>
+            <List>
+              {processedResults.map((result, index) => (
+                <Fade in={true} key={index}>
+                  <Paper elevation={3} sx={{ p: 3, mb: 2 }}>
+                    <ListItemText 
+                      primary={
+                        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+                          {result.status === 'success' ? 
+                            <CheckCircleOutlineIcon color="success" sx={{ mr: 1 }} /> : 
+                            <ErrorOutlineIcon color="error" sx={{ mr: 1 }} />
+                          }
+                          {result.filename}
+                        </Typography>
+                      }
+                      secondary={
+                        result.status === 'failed' ? 
+                          <Typography color="error">Error: {result.error}</Typography> : 
+                          null
+                      }
+                    />
+                    {result.status === 'success' && result.data && (
+                      <Box mt={2}>
+                        <Typography variant="subtitle1">Document Type: {result.data.document_type}</Typography>
+                        <Typography variant="subtitle1">Is Shipping Label: {result.data.is_shipping_label ? 'Yes' : 'No'}</Typography>
+                        {result.data.tracking_number && <Typography variant="subtitle1">Tracking Number: {result.data.tracking_number}</Typography>}
+                        {result.data.message && <Typography variant="subtitle1">Message: {result.data.message}</Typography>}
+
+                        {result.data.origin_address && (
+                          <Box mt={2}>
+                            <Typography variant="h6">Origin Address:</Typography>
+                            <JsonToTable json={result.data.origin_address} />
+                          </Box>
+                        )}
+                        {result.data.destination_address && (
+                          <Box mt={2}>
+                            <Typography variant="h6">Destination Address:</Typography>
+                            <JsonToTable json={result.data.destination_address} />
+                          </Box>
+                        )}
+                        
+                        {/* Optionally display raw extracted_info if needed for debugging */}
+                        {/* <Box mt={2}> 
+                          <Typography variant="h6">Raw Extracted Info:</Typography>
+                          <JsonToTable json={result.data.extracted_info} />
+                        </Box> */}
+                      </Box>
+                    )}
+                  </Paper>
+                </Fade>
+              ))}
+            </List>
           </Box>
         )}
       </Box>

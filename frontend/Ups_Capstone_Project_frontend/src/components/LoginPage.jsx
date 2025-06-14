@@ -30,7 +30,7 @@ function LoginPage() {
     setError('');
     try {
       const data = await authService.login(username, password);
-      login(data.access_token);
+      await login(data.access_token);
       navigate('/upload');
     } catch (err) {
       setError(err.message || 'Login failed');

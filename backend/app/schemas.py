@@ -1,7 +1,6 @@
-# schemas.py
 from pydantic import BaseModel, Field, validator, EmailStr
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 
 class Token(BaseModel):
@@ -43,18 +42,30 @@ class UserResponse(BaseModel):
 class UserCredentialInDB(UserResponse):
     hashed_password: str
 
+
+# Pydantic Schemas for the new ImageProcessedData model
 class UploadRecordBase(BaseModel):
     filename: str
-    upload_status: str | None = "pending"
-    extract_status: str | None = "pending"
-    tracking_id: str | None = None
-    address: str | None = None
-    name: str | None = None
-    city: str | None = None
-    number: str | None = None
-    pincode: str | None = None
-    country: str | None = None
-    extracted_info: dict | None = None
+    upload_status: Optional[str] = "pending"
+    extract_status: Optional[str] = "pending"
+    
+    # Fields from AI Extraction Result (ShippingExtraction)
+    document_type: Optional[str] = None
+    is_shipping_label: Optional[bool] = None
+    tracking_number: Optional[str] = None
+    message: Optional[str] = None
+    origin_address_json: Optional[dict] = None  # To store dict of address
+    destination_address_json: Optional[dict] = None  # To store dict of address
+
+    # Original fields that were for unstructured info (might be redundant if AI output is preferred)
+    address: Optional[str] = None
+    name: Optional[str] = None
+    city: Optional[str] = None
+    number: Optional[str] = None
+    pincode: Optional[str] = None
+    country: Optional[str] = None
+    extracted_info: Optional[dict] = None # This can store the raw LLM output or specific extracted_info as before
+
 
 class UploadRecordCreate(UploadRecordBase):
     pass
@@ -64,13 +75,14 @@ class UploadRecordResponse(UploadRecordBase):
     upload_timestamp: datetime
 
     class Config:
-        from_attributes = True
+        from_attributes = True # Allow ORM to Pydantic mapping
 
+# PaginatedUploadRecords now uses UploadRecordResponse
 class PaginatedUploadRecords(BaseModel):
     total: int
     page: int
     size: int
-    items: list[UploadRecordResponse]
+    items: List[UploadRecordResponse]
 
 class UserLogin(BaseModel):
     username: str

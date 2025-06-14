@@ -23,7 +23,7 @@ import ConfirmationPage from './components/ConfirmationPage';
 import ProfilePage from './components/ProfilePage';
 
 function App() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, isLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null); // State for the menu anchor
@@ -32,6 +32,10 @@ function App() {
   // Define paths where the AppBar should not be shown
   const noAppBarPaths = ['/login', '/register', '/confirmation'];
   const shouldShowAppBar = !noAppBarPaths.includes(location.pathname);
+
+  console.log('App Render: isAuthenticated =', isAuthenticated);
+  console.log('App Render: shouldShowAppBar =', shouldShowAppBar);
+  console.log('App Render: isLoading =', isLoading);
 
   const navItems = [
     { label: 'Upload', path: '/upload', icon: <CloudUploadIcon /> },
@@ -52,8 +56,24 @@ function App() {
     handleMenuClose();
   };
 
+  if (isLoading) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          bgcolor: 'background.default'
+        }}>
+          <Typography variant="h5">Loading application...</Typography>
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
   return (
-    <AuthProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -184,7 +204,6 @@ function App() {
           </Box>
         </Box>
       </ThemeProvider>
-    </AuthProvider>
   );
 }
 

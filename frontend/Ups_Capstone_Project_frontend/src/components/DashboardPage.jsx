@@ -372,33 +372,75 @@ const DashboardPage = () => {
 
             {!loadingRecords && filteredRecords.length > 0 && (
               <>
-                <TableContainer component={Paper} elevation={1} sx={{ mb: 3 }}>
-                  <Table size="small">
+                <TableContainer component={Paper}>
+                  <Table sx={{ minWidth: 650 }} aria-label="simple table">
                     <TableHead>
-                      <TableRow sx={{ bgcolor: 'primary.light', '& th': { color: 'common.white', fontWeight: 'bold' } }}>
-                        <TableCell>Uploaded Time</TableCell>
-                        <TableCell>Tracking ID</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell>City</TableCell>
-                        <TableCell>Pincode</TableCell>
-                        <TableCell>Country</TableCell>
-                        <TableCell>Upload Status</TableCell>
-                        <TableCell>Extract Status</TableCell>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Filename</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Upload Date</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Upload Status</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Extract Status</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Document Type</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Is Shipping Label</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Tracking Number</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Message</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Origin Address</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Destination Address</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Address</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Number</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Pincode</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Country</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Raw Extracted Info</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {filteredRecords.map((record) => (
-                        <TableRow key={record.id} hover>
-                          <TableCell>{highlightMatch(new Date(record.upload_timestamp).toLocaleString())}</TableCell>
-                          <TableCell>{highlightMatch(record.tracking_id || 'N/A')}</TableCell>
-                          <TableCell>{highlightMatch(record.name || 'N/A')}</TableCell>
-                          <TableCell>{highlightMatch(record.city || 'N/A')}</TableCell>
-                          <TableCell>{highlightMatch(record.pincode || 'N/A')}</TableCell>
-                          <TableCell>{highlightMatch(record.country || 'N/A')}</TableCell>
-                          <TableCell>{highlightMatch(record.upload_status.charAt(0).toUpperCase() + record.upload_status.slice(1))}</TableCell>
-                          <TableCell>{highlightMatch(record.extract_status.charAt(0).toUpperCase() + record.extract_status.slice(1))}</TableCell>
-                        </TableRow>
-                      ))}
+                      {loadingRecords ? (
+                        <TableRow><TableCell colSpan={10} align="center"><CircularProgress /></TableCell></TableRow>
+                      ) : filteredRecords.length === 0 ? (
+                        <TableRow><TableCell colSpan={10} align="center">No records found.</TableCell></TableRow>
+                      ) : (
+                        filteredRecords.map((record) => {
+                          const originAddress = record.origin_address_json || {};
+                          const destinationAddress = record.destination_address_json || {};
+
+                          const formatAddress = (address) => {
+                            if (!address) return 'N/A';
+                            const parts = [
+                              address.name,
+                              address.street_address,
+                              address.city,
+                              address.state,
+                              address.zipcode,
+                              address.country
+                            ].filter(Boolean);
+                            return parts.join(', ');
+                          };
+
+                          return (
+                            <TableRow key={record.id}>
+                              <TableCell>{highlightMatch(record.filename)}</TableCell>
+                              <TableCell>{highlightMatch(new Date(record.upload_timestamp).toLocaleDateString())}</TableCell>
+                              <TableCell>{highlightMatch(record.upload_status)}</TableCell>
+                              <TableCell>{highlightMatch(record.extract_status)}</TableCell>
+                              <TableCell>{highlightMatch(record.document_type || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.is_shipping_label ? 'Yes' : 'No')}</TableCell>
+                              <TableCell>{highlightMatch(record.tracking_number || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.message || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(formatAddress(originAddress))}</TableCell>
+                              <TableCell>{highlightMatch(formatAddress(destinationAddress))}</TableCell>
+                              <TableCell>{highlightMatch(record.address || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.name || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.city || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.number || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.pincode || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.country || 'N/A')}</TableCell>
+                              <TableCell>{highlightMatch(record.extracted_info ? 'Available' : 'N/A')}</TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
                     </TableBody>
                   </Table>
                 </TableContainer>

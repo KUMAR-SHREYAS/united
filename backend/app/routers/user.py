@@ -1,16 +1,15 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from fastapi.responses import JSONResponse
-# import imghdr # Removed imghdr
 import os
 from PIL import Image # Import Pillow
 from sqlalchemy.orm import Session
 from typing import List
 
-from backend.auth.auth_handler import get_current_active_user, get_current_admin_user
-from backend.database import get_db
-from backend.schemas import UserCredentialSchema, UserCreate, UserCreateAdmin
-from backend.models import UserCredential
-from backend.auth.utils import get_password_hash
+from ..auth.auth_handler import get_current_active_user, get_current_admin_user
+from ..database import get_db
+from ..schemas import UserCredentialSchema, UserCreate, UserCreateAdmin
+from ..models import UserCredential
+from ..auth.utils import get_password_hash
 
 router = APIRouter()
 
@@ -153,4 +152,4 @@ async def delete_my_user(db: Session = Depends(get_db), current_user: UserCreden
         raise HTTPException(status_code=404, detail="User not found.")
     db.delete(user_to_delete)
     db.commit()
-    return 
+    return

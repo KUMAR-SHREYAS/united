@@ -6,16 +6,13 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 import json
 import os
-<<<<<<< HEAD
 from fastapi.middleware.cors import CORSMiddleware
-=======
 from typing import Optional
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, status
 from sqlalchemy.orm import Session
->>>>>>> temp-gemini
 
 # Database connection details
 MYSQL_HOST = os.getenv("MYSQL_HOST")

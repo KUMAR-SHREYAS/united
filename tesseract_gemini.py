@@ -259,212 +259,212 @@ except Exception as e:
 
 
 
-# %% [markdown]
-# ## DESTINATION
+# # %% [markdown]
+# # ## DESTINATION
 
-# %%
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
-
-
-cleaned_destination_text = clean_address_text(text)
-# print(f"Original Text:\n{text}\n")
-# print(f"Cleaned Text:\n{text}\n")
+# # %%
+# genai.configure(api_key=GOOGLE_API_KEY)
+# model = genai.GenerativeModel('gemini-1.5-flash')
 
 
-dest_example_input_text = "SHIP TO:\nJOSEPHINE MARIS\n147852369\n58 KNIGHTSBRIDGE\nLONDON SW1X7JT\nUNITED KINGDOM"
-dest_example_output_json = {"name": "JOSEPHINE MARIS", "phone_number": "147852369", "street_address": "58 KNIGHTSBRIDGE", "city": "LONDON", "state": None, "zipcode": "SW1X7JT", "country": "UNITED KINGDOM"}
+# cleaned_destination_text = clean_address_text(text)
+# # print(f"Original Text:\n{text}\n")
+# # print(f"Cleaned Text:\n{text}\n")
 
 
-prompt_destination = f"""
-You are an intelligent and highly accurate address extraction system. Your task is to extract the **Ship To Address** components from the provided text. Focus only on the destination address, which is typically found after "SHIP TO:" or as the primary address if only one is present.
-
-Here are the fields you need to extract for the destination address:
-- `name`: The name of the person or organization.
-- `phone_number`: The phone number, including country code if present.
-- `street_address`: The building number, street name, apartment/suite number, and any P.O. Box information.
-- `city`: The city name.
-- `state`: The state or province abbreviation (for US/CANADA) or full name for other countries, if applicable.
-- `zipcode`: The postal code or ZIP code.
-- `country`: The country name. **This field must NOT be null.**
-
-Important rules for `country` field:
-1.  If the country is explicitly mentioned in the text (e.g., "USA", "UNITED KINGDOM", "CANADA"), use that.
-2.  If a 5-digit numeric `zipcode` (e.g., "90210") is found, the country is almost certainly "USA".
-3.  If an alphanumeric `zipcode` in the format `A1A 1A1` (Letter-Digit-Letter Space Digit-Letter-Digit, e.g., "M6G 1L5") is found, the country is "CANADA".
-4.  If an alphanumeric `zipcode` in the format `AA1 1AA`, `A1A 1AA`, `A1 1AA` (e.g., "NW1 6XE") is found, the country is "UNITED KINGDOM".
-5.  If a common US state abbreviation (e.g., CA, NY, IL, TX, FL) is detected in the `state` field, and no other country inference is possible, assume the country is "USA".
-6.  If none of the above rules apply and the country is still not found, set it to "UNKNOWN".
-
-General rules for extraction and formatting:
-1.  Output the extracted information strictly as a JSON object. The object MUST start with `{{` and end with `}}`.
-2.  If a field is not found in the input text, set its value to `null`.
-3.  All extracted text **MUST BE IN UPPERCASE**.
-4.  **Normalize common address abbreviations:** Expand "ST." to "STREET", "AVE." to "AVENUE", "APT." to "APARTMENT", "STE." to "SUITE", "PO BOX" to "P.O. BOX".
-5.  **Correct minor OCR typographical errors:** Carefully read the text and correct minor typographical errors that appear to be OCR-related if the corrected word makes sense in the context of an address (e.g., "WAIN STREET" should be corrected to "MAIN STREET"). Prioritize semantic correctness and common address patterns over literal interpretation of obvious OCR mistakes.
-6.  Ensure the extracted information is plausible and internally consistent for an address.
-7.  Do not include any extra punctuation in phone numbers beyond standard parentheses or hyphens as commonly formatted.
-
-Here is an example to guide you:
-
-Example Input:
-{json.dumps(dest_example_input_text, indent=2)}
-Example Output:
-{json.dumps(dest_example_output_json, indent=2)}
-
-Now, extract the information from the following address text:
-
-Address Text:
-{text}
-
-JSON Output:
-"""
+# dest_example_input_text = "SHIP TO:\nJOSEPHINE MARIS\n147852369\n58 KNIGHTSBRIDGE\nLONDON SW1X7JT\nUNITED KINGDOM"
+# dest_example_output_json = {"name": "JOSEPHINE MARIS", "phone_number": "147852369", "street_address": "58 KNIGHTSBRIDGE", "city": "LONDON", "state": None, "zipcode": "SW1X7JT", "country": "UNITED KINGDOM"}
 
 
-# %%
+# prompt_destination = f"""
+# You are an intelligent and highly accurate address extraction system. Your task is to extract the **Ship To Address** components from the provided text. Focus only on the destination address, which is typically found after "SHIP TO:" or as the primary address if only one is present.
+
+# Here are the fields you need to extract for the destination address:
+# - `name`: The name of the person or organization.
+# - `phone_number`: The phone number, including country code if present.
+# - `street_address`: The building number, street name, apartment/suite number, and any P.O. Box information.
+# - `city`: The city name.
+# - `state`: The state or province abbreviation (for US/CANADA) or full name for other countries, if applicable.
+# - `zipcode`: The postal code or ZIP code.
+# - `country`: The country name. **This field must NOT be null.**
+
+# Important rules for `country` field:
+# 1.  If the country is explicitly mentioned in the text (e.g., "USA", "UNITED KINGDOM", "CANADA"), use that.
+# 2.  If a 5-digit numeric `zipcode` (e.g., "90210") is found, the country is almost certainly "USA".
+# 3.  If an alphanumeric `zipcode` in the format `A1A 1A1` (Letter-Digit-Letter Space Digit-Letter-Digit, e.g., "M6G 1L5") is found, the country is "CANADA".
+# 4.  If an alphanumeric `zipcode` in the format `AA1 1AA`, `A1A 1AA`, `A1 1AA` (e.g., "NW1 6XE") is found, the country is "UNITED KINGDOM".
+# 5.  If a common US state abbreviation (e.g., CA, NY, IL, TX, FL) is detected in the `state` field, and no other country inference is possible, assume the country is "USA".
+# 6.  If none of the above rules apply and the country is still not found, set it to "UNKNOWN".
+
+# General rules for extraction and formatting:
+# 1.  Output the extracted information strictly as a JSON object. The object MUST start with `{{` and end with `}}`.
+# 2.  If a field is not found in the input text, set its value to `null`.
+# 3.  All extracted text **MUST BE IN UPPERCASE**.
+# 4.  **Normalize common address abbreviations:** Expand "ST." to "STREET", "AVE." to "AVENUE", "APT." to "APARTMENT", "STE." to "SUITE", "PO BOX" to "P.O. BOX".
+# 5.  **Correct minor OCR typographical errors:** Carefully read the text and correct minor typographical errors that appear to be OCR-related if the corrected word makes sense in the context of an address (e.g., "WAIN STREET" should be corrected to "MAIN STREET"). Prioritize semantic correctness and common address patterns over literal interpretation of obvious OCR mistakes.
+# 6.  Ensure the extracted information is plausible and internally consistent for an address.
+# 7.  Do not include any extra punctuation in phone numbers beyond standard parentheses or hyphens as commonly formatted.
+
+# Here is an example to guide you:
+
+# Example Input:
+# {json.dumps(dest_example_input_text, indent=2)}
+# Example Output:
+# {json.dumps(dest_example_output_json, indent=2)}
+
+# Now, extract the information from the following address text:
+
+# Address Text:
+# {text}
+
+# JSON Output:
+# """
 
 
-# %%
-generation_config = {
-    "temperature": 0.0,
-    "top_p": 1,
-    "top_k": 1,
-}
-
-try:
-    response = model.generate_content(
-        prompt_destination,
-        generation_config=generation_config
-    )
-
-    extracted_json_str = response.text if hasattr(response, 'text') and response.text else ""
-
-    if not extracted_json_str.strip():
-        print("LLM returned an empty or whitespace-only response for destination address.")
-        if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
-        if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
-        destination_address = None
-    # else:
-        # destination_address = parse_and_validate_address_outpu(extracted_json_str)
-
-    if destination_address:
-        print("--- Extracted Destination Address (JSON Output) ---")
-        print(json.dumps(destination_address, indent=2))
-    else:
-        print("Failed to extract and parse destination address information.")
-
-except Exception as e:
-    print(f"An error occurred during the API call for destination address: {e}")
-    if 'response' in locals():
-        if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
-        if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
-        print("Raw LLM response (if available):")
-        print(response.text if hasattr(response, 'text') else "No response text.")
-
-# %% [markdown]
-# ## ORIGIN
-
-# %%
-cleaned_origin_text = clean_address_text(text)
-print(f"Cleaned Text:\n{cleaned_origin_text}\n")
-
-origin_example_input_text = "DOE JOHN\n212-982-2500\nSAMPLE C\nP.O. BOX 1 QUEENS\n75003 PARIS\nFRANCE"
-origin_example_output_json = {
-    "name": "DOE JOHN",
-    "phone_number": "212-982-2500",
-    "street_address": "SAMPLE C P.O. BOX 1 QUEENS",
-    "city": "PARIS",
-    "state": None,
-    "zipcode": "75003",
-    "country": "FRANCE"
-}
+# # %%
 
 
-prompt_origin = f"""
-You are an intelligent and highly accurate address extraction system. Your task is to extract the **Origin Address** components from the provided text. Focus only on the origin address, which is typically found before "SHIP TO:" or as the primary address if no "SHIP TO:" is present.
+# # %%
+# generation_config = {
+#     "temperature": 0.0,
+#     "top_p": 1,
+#     "top_k": 1,
+# }
 
-Here are the fields you need to extract for the origin address:
-- `name`: The name of the person or organization.
-- `phone_number`: The phone number, including country code if present.
-- `street_address`: The building number, street name, apartment/suite number, and any P.O. Box information.
-- `city`: The city name.
-- `state`: The state or province abbreviation (for US/CANADA) or full name for other countries, if applicable.
-- `zipcode`: The postal code or ZIP code.
-- `country`: The country name. **This field must NOT be null.**
+# try:
+#     response = model.generate_content(
+#         prompt_destination,
+#         generation_config=generation_config
+#     )
 
-Important rules for `country` field:
-1.  If the country is explicitly mentioned in the text (e.g., "USA", "UNITED KINGDOM", "CANADA"), use that.
-2.  If a 5-digit numeric `zipcode` (e.g., "90210") is found, the country is almost certainly "USA".
-3.  If an alphanumeric `zipcode` in the format `A1A 1A1` (Letter-Digit-Letter Space Digit-Letter-Digit, e.g., "M6G 1L5") is found, the country is "CANADA".
-4.  If an alphanumeric `zipcode` in the format `AA1 1AA`, `A1A 1AA`, `A1 1AA` (e.g., "NW1 6XE") is found, the country is "UNITED KINGDOM".
-5.  If a common US state abbreviation (e.g., CA, NY, IL, TX, FL) is detected in the `state` field, and no other country inference is possible, assume the country is "USA".
-6.  If none of the above rules apply and the country is still not found, set it to "UNKNOWN".
+#     extracted_json_str = response.text if hasattr(response, 'text') and response.text else ""
 
-General rules for extraction and formatting:
-1.  Output the extracted information strictly as a JSON object. The object MUST start with `{{` and end with `}}`.
-2.  If a field is not found in the input text, set its value to `null`.
-3.  All extracted text **MUST BE IN UPPERCASE**.
-4.  **Normalize common address abbreviations:** Expand "ST." to "STREET", "AVE." to "AVENUE", "APT." to "APARTMENT", "STE." to "SUITE", "PO BOX" to "P.O. BOX".
-5.  **Correct minor OCR typographical errors:** Carefully read the text and correct minor typographical errors that appear to be OCR-related if the corrected word makes sense in the context of an address (e.g., "WAIN STREET" should be corrected to "MAIN STREET"). Prioritize semantic correctness and common address patterns over literal interpretation of obvious OCR mistakes.
-6.  Ensure the extracted information is plausible and internally consistent for an address.
-7.  Do not include any extra punctuation in phone numbers beyond standard parentheses or hyphens as commonly formatted.
+#     if not extracted_json_str.strip():
+#         print("LLM returned an empty or whitespace-only response for destination address.")
+#         if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
+#         if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
+#         destination_address = None
+#     # else:
+#         # destination_address = parse_and_validate_address_outpu(extracted_json_str)
 
-Here is an example to guide you:
+#     if destination_address:
+#         print("--- Extracted Destination Address (JSON Output) ---")
+#         print(json.dumps(destination_address, indent=2))
+#     else:
+#         print("Failed to extract and parse destination address information.")
 
-Example Input:
-{json.dumps(origin_example_input_text, indent=2)}
-Example Output:
-{json.dumps(origin_example_output_json, indent=2)}
+# except Exception as e:
+#     print(f"An error occurred during the API call for destination address: {e}")
+#     if 'response' in locals():
+#         if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
+#         if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
+#         print("Raw LLM response (if available):")
+#         print(response.text if hasattr(response, 'text') else "No response text.")
 
-Now, extract the information from the following address text:
+# # %% [markdown]
+# # ## ORIGIN
 
-Address Text:
-{cleaned_origin_text}
+# # %%
+# cleaned_origin_text = clean_address_text(text)
+# print(f"Cleaned Text:\n{cleaned_origin_text}\n")
 
-JSON Output:
-"""
-
-
-
-# %%
-generation_config = {
-    "temperature": 0.0,
-    "top_p": 1,
-    "top_k": 1,
-}
-
-try:
-    response = model.generate_content(
-        prompt_origin,
-        generation_config=generation_config
-    )
-
-    extracted_json_str = response.text if hasattr(response, 'text') and response.text else ""
-
-    if not extracted_json_str.strip():
-        print("LLM returned an empty or whitespace-only response for origin address.")
-        if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
-        if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
-        origin_address = None
-    # else:
-        # origin_address = parse_and_validate_address_outpu(extracted_json_str)
-
-    if origin_address:
-        print("--- Extracted Origin Address (JSON Output) ---")
-        print(json.dumps(origin_address, indent=2))
-    else:
-        print("Failed to extract and parse origin address information.")
-
-except Exception as e:
-    print(f"An error occurred during the API call for origin address: {e}")
-    if 'response' in locals():
-        if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
-        if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
-        print("Raw LLM response (if available):")
-        print(response.text if hasattr(response, 'text') else "No response text.")
+# origin_example_input_text = "DOE JOHN\n212-982-2500\nSAMPLE C\nP.O. BOX 1 QUEENS\n75003 PARIS\nFRANCE"
+# origin_example_output_json = {
+#     "name": "DOE JOHN",
+#     "phone_number": "212-982-2500",
+#     "street_address": "SAMPLE C P.O. BOX 1 QUEENS",
+#     "city": "PARIS",
+#     "state": None,
+#     "zipcode": "75003",
+#     "country": "FRANCE"
+# }
 
 
-# %%
+# prompt_origin = f"""
+# You are an intelligent and highly accurate address extraction system. Your task is to extract the **Origin Address** components from the provided text. Focus only on the origin address, which is typically found before "SHIP TO:" or as the primary address if no "SHIP TO:" is present.
+
+# Here are the fields you need to extract for the origin address:
+# - `name`: The name of the person or organization.
+# - `phone_number`: The phone number, including country code if present.
+# - `street_address`: The building number, street name, apartment/suite number, and any P.O. Box information.
+# - `city`: The city name.
+# - `state`: The state or province abbreviation (for US/CANADA) or full name for other countries, if applicable.
+# - `zipcode`: The postal code or ZIP code.
+# - `country`: The country name. **This field must NOT be null.**
+
+# Important rules for `country` field:
+# 1.  If the country is explicitly mentioned in the text (e.g., "USA", "UNITED KINGDOM", "CANADA"), use that.
+# 2.  If a 5-digit numeric `zipcode` (e.g., "90210") is found, the country is almost certainly "USA".
+# 3.  If an alphanumeric `zipcode` in the format `A1A 1A1` (Letter-Digit-Letter Space Digit-Letter-Digit, e.g., "M6G 1L5") is found, the country is "CANADA".
+# 4.  If an alphanumeric `zipcode` in the format `AA1 1AA`, `A1A 1AA`, `A1 1AA` (e.g., "NW1 6XE") is found, the country is "UNITED KINGDOM".
+# 5.  If a common US state abbreviation (e.g., CA, NY, IL, TX, FL) is detected in the `state` field, and no other country inference is possible, assume the country is "USA".
+# 6.  If none of the above rules apply and the country is still not found, set it to "UNKNOWN".
+
+# General rules for extraction and formatting:
+# 1.  Output the extracted information strictly as a JSON object. The object MUST start with `{{` and end with `}}`.
+# 2.  If a field is not found in the input text, set its value to `null`.
+# 3.  All extracted text **MUST BE IN UPPERCASE**.
+# 4.  **Normalize common address abbreviations:** Expand "ST." to "STREET", "AVE." to "AVENUE", "APT." to "APARTMENT", "STE." to "SUITE", "PO BOX" to "P.O. BOX".
+# 5.  **Correct minor OCR typographical errors:** Carefully read the text and correct minor typographical errors that appear to be OCR-related if the corrected word makes sense in the context of an address (e.g., "WAIN STREET" should be corrected to "MAIN STREET"). Prioritize semantic correctness and common address patterns over literal interpretation of obvious OCR mistakes.
+# 6.  Ensure the extracted information is plausible and internally consistent for an address.
+# 7.  Do not include any extra punctuation in phone numbers beyond standard parentheses or hyphens as commonly formatted.
+
+# Here is an example to guide you:
+
+# Example Input:
+# {json.dumps(origin_example_input_text, indent=2)}
+# Example Output:
+# {json.dumps(origin_example_output_json, indent=2)}
+
+# Now, extract the information from the following address text:
+
+# Address Text:
+# {cleaned_origin_text}
+
+# JSON Output:
+# """
+
+
+
+# # %%
+# generation_config = {
+#     "temperature": 0.0,
+#     "top_p": 1,
+#     "top_k": 1,
+# }
+
+# try:
+#     response = model.generate_content(
+#         prompt_origin,
+#         generation_config=generation_config
+#     )
+
+#     extracted_json_str = response.text if hasattr(response, 'text') and response.text else ""
+
+#     if not extracted_json_str.strip():
+#         print("LLM returned an empty or whitespace-only response for origin address.")
+#         if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
+#         if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
+#         origin_address = None
+#     # else:
+#         # origin_address = parse_and_validate_address_outpu(extracted_json_str)
+
+#     if origin_address:
+#         print("--- Extracted Origin Address (JSON Output) ---")
+#         print(json.dumps(origin_address, indent=2))
+#     else:
+#         print("Failed to extract and parse origin address information.")
+
+# except Exception as e:
+#     print(f"An error occurred during the API call for origin address: {e}")
+#     if 'response' in locals():
+#         if hasattr(response, 'prompt_feedback'): print(f"Prompt feedback: {response.prompt_feedback}")
+#         if hasattr(response, 'candidates') and response.candidates: print(f"Candidate safety ratings: {response.candidates[0].safety_ratings}")
+#         print("Raw LLM response (if available):")
+#         print(response.text if hasattr(response, 'text') else "No response text.")
+
+
+# # %%
 
 
 
