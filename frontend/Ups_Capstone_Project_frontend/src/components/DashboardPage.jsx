@@ -329,7 +329,7 @@ const DashboardPage = () => {
             </FormControl>
 
             <TextField
-              label="Search All"
+              label="Search"
               variant="outlined"
               size="small"
               value={searchTerm}
