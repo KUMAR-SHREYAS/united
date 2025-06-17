@@ -385,13 +385,13 @@ const DashboardPage = () => {
                         <TableCell sx={{ fontWeight: 'bold' }}>Tracking Number</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Message</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Origin Address</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Destination Address</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Address</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Number</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Pincode</TableCell>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Country</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee Address(full)</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee Address(main)</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee City</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee Number</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee Pincode</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Consignee Country</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Raw Extracted Info</TableCell>
                       </TableRow>
                     </TableHead>
