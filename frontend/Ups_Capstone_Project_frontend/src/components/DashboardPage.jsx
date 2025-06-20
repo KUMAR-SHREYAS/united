@@ -34,13 +34,16 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useAuth } from '../auth/AuthContext'; // Import useAuth
-import api from '../utils/api'; // Import the custom API axios instance
+import PrintIcon from '@mui/icons-material/Print';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useAuth } from '../auth/AuthContext';
+import api from '../utils/api';
+import printImage from './print.jpg'; // Import the print image
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAdmin, isApproved } = useAuth(); // Get user, isAdmin, isApproved from AuthContext
+  const { user, isAdmin, isApproved } = useAuth();
 
   const [records, setRecords] = useState([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -50,19 +53,28 @@ const DashboardPage = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // State for print image dialog
+  const [openPrintDialog, setOpenPrintDialog] = useState(false);
+  const [printImageUrl, setPrintImageUrl] = useState('');
+
+  // State for filename preview dialog
+  const [openPreviewDialog, setOpenPreviewDialog] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState('');
+  const [previewFilename, setPreviewFilename] = useState('');
+
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [errorUsers, setErrorUsers] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const [actionType, setActionType] = useState(''); // 'approve', 'reject', 'delete'
-  const [openAddUserDialog, setOpenAddUserDialog] = useState(false); // New state for Add User dialog
+  const [actionType, setActionType] = useState('');
+  const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
   const [newUser, setNewUser] = useState({
     username: '',
     email: '',
     password: '',
-    role: 'user', // Default role
-    status: 'pending', // Default status
+    role: 'user',
+    status: 'pending',
   });
 
   const navTabs = [
@@ -80,6 +92,43 @@ const DashboardPage = () => {
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
     navigate(newValue);
+  };
+
+  // Handler for print button click
+  const handlePrintClick = (record) => {
+    setPrintImageUrl(printImage);
+    setOpenPrintDialog(true);
+  };
+
+  const handleClosePrintDialog = () => {
+    setOpenPrintDialog(false);
+    setPrintImageUrl('');
+  };
+
+  // Handler for filename click to show actual uploaded image preview
+  const handleFilenameClick = (record) => {
+    // Construct the image URL based on the record
+    // Option 1: If your backend serves images from /uploads/ endpoint
+    const imageUrl = `/api/uploads/${record.filename}`;
+    
+    // Option 2: If your backend has a specific endpoint for images by record ID
+    // const imageUrl = `/api/images/${record.id}`;
+    
+    // Option 3: If the record already contains an image_url field
+    // const imageUrl = record.image_url;
+    
+    // Option 4: If images are served from a static folder
+    // const imageUrl = `/uploads/${record.filename}`;
+
+    setPreviewImageUrl(imageUrl);
+    setPreviewFilename(record.filename);
+    setOpenPreviewDialog(true);
+  };
+
+  const handleClosePreviewDialog = () => {
+    setOpenPreviewDialog(false);
+    setPreviewImageUrl('');
+    setPreviewFilename('');
   };
 
   const fetchRecords = async () => {
@@ -152,7 +201,7 @@ const DashboardPage = () => {
       } else if (actionType === 'delete') {
         await api.delete(`/users/${selectedUser.id}`);
       }
-      fetchUsers(); // Refresh the user list
+      fetchUsers();
       handleCloseConfirmDialog();
     } catch (err) {
       setErrorUsers("Action failed: " + (err.response?.data?.detail || err.message));
@@ -393,13 +442,14 @@ const DashboardPage = () => {
                         <TableCell sx={{ fontWeight: 'bold' }}>Consignee Pincode</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Consignee Country</TableCell>
                         <TableCell sx={{ fontWeight: 'bold' }}>Raw Extracted Info</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Print Barcode</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {loadingRecords ? (
-                        <TableRow><TableCell colSpan={10} align="center"><CircularProgress /></TableCell></TableRow>
+                        <TableRow><TableCell colSpan={18} align="center"><CircularProgress /></TableCell></TableRow>
                       ) : filteredRecords.length === 0 ? (
-                        <TableRow><TableCell colSpan={10} align="center">No records found.</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={18} align="center">No records found.</TableCell></TableRow>
                       ) : (
                         filteredRecords.map((record) => {
                           const originAddress = record.origin_address_json || {};
@@ -420,7 +470,22 @@ const DashboardPage = () => {
 
                           return (
                             <TableRow key={record.id}>
-                              <TableCell>{highlightMatch(record.filename)}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="text"
+                                  color="primary"
+                                  startIcon={<VisibilityIcon />}
+                                  onClick={() => handleFilenameClick(record)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontSize: '0.875rem',
+                                    minWidth: 'auto',
+                                    padding: '4px 8px'
+                                  }}
+                                >
+                                  {highlightMatch(record.filename)}
+                                </Button>
+                              </TableCell>
                               <TableCell>{highlightMatch(new Date(record.upload_timestamp).toLocaleDateString())}</TableCell>
                               <TableCell>{highlightMatch(record.upload_status)}</TableCell>
                               <TableCell>{highlightMatch(record.extract_status)}</TableCell>
@@ -437,6 +502,22 @@ const DashboardPage = () => {
                               <TableCell>{highlightMatch(record.pincode || 'N/A')}</TableCell>
                               <TableCell>{highlightMatch(record.country || 'N/A')}</TableCell>
                               <TableCell>{highlightMatch(record.extracted_info ? 'Available' : 'N/A')}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="text"
+                                  color="primary"
+                                  startIcon={<PrintIcon />}
+                                  onClick={() => handlePrintClick(record)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontSize: '0.875rem',
+                                    minWidth: 'auto',
+                                    padding: '4px 8px'
+                                  }}
+                                >
+                                  Print
+                                </Button>
+                              </TableCell>
                             </TableRow>
                           );
                         })
@@ -445,16 +526,27 @@ const DashboardPage = () => {
                   </Table>
                 </TableContainer>
 
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mt: 3, flexWrap: 'wrap' }}>
-                  <IconButton onClick={() => setPageRecords((prev) => Math.max(prev - 1, 1))} disabled={pageRecords === 1}>
-                    <ArrowBackIcon fontSize="small" />
-                  </IconButton>
-
-                  {renderPageButtons()}
-
-                  <IconButton onClick={() => setPageRecords((prev) => Math.min(prev + 1, totalPagesRecords))} disabled={pageRecords === totalPagesRecords}>
-                    <ArrowForwardIcon fontSize="small" />
-                  </IconButton>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Showing {((pageRecords - 1) * pageSizeRecords) + 1} to {Math.min(pageRecords * pageSizeRecords, totalRecords)} of {totalRecords} records
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconButton
+                      onClick={() => setPageRecords(Math.max(1, pageRecords - 1))}
+                      disabled={pageRecords === 1}
+                      size="small"
+                    >
+                      <ArrowBackIcon />
+                    </IconButton>
+                    {renderPageButtons()}
+                    <IconButton
+                      onClick={() => setPageRecords(Math.min(totalPagesRecords, pageRecords + 1))}
+                      disabled={pageRecords === totalPagesRecords}
+                      size="small"
+                    >
+                      <ArrowForwardIcon />
+                    </IconButton>
+                  </Box>
                 </Box>
               </>
             )}
@@ -462,82 +554,191 @@ const DashboardPage = () => {
         </>
       )}
 
+      {/* Print Image Dialog */}
+      <Dialog
+        open={openPrintDialog}
+        onClose={handleClosePrintDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Print Information
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center', p: 2 }}>
+            {printImageUrl ? (
+              <img
+                src={printImageUrl}
+                alt="Print Information"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '500px',
+                  objectFit: 'contain'
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+            ) : null}
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ display: 'none', mt: 2 }}
+            >
+              Image could not be loaded. Please check the image path.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePrintDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Filename Preview Dialog - Shows Actual Uploaded Image */}
+      <Dialog
+        open={openPreviewDialog}
+        onClose={handleClosePreviewDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Image Preview: {previewFilename}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center', p: 2 }}>
+            {previewImageUrl ? (
+              <img
+                src={previewImageUrl}
+                alt={`Preview of ${previewFilename}`}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '500px',
+                  objectFit: 'contain'
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+            ) : null}
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ display: 'none', mt: 2 }}
+            >
+              Image could not be loaded. Please check if the image exists on the server.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreviewDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rest of the component remains the same - User Management section, etc. */}
       {location.pathname === '/dashboard/users' && isAdmin && (
         <Paper elevation={3} sx={{ mt: 2, p: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-            User Management
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setOpenAddUserDialog(true)}
-            sx={{ mb: 3 }}
-          >
-            Add New User
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              User Management
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenAddUserDialog(true)}
+            >
+              Add User
+            </Button>
+          </Box>
+
           {loadingUsers && (
             <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
               <CircularProgress />
               <Typography variant="body1" sx={{ ml: 2 }}>Loading users...</Typography>
             </Box>
           )}
+
           {errorUsers && (
-            <Alert severity="error" sx={{ mb: 2 }}>{errorUsers}</Alert>
+            <Alert severity="error" sx={{ my: 4 }}>
+              {errorUsers}
+            </Alert>
           )}
-          {!loadingUsers && !errorUsers && users.length === 0 && (
-            <Typography>No users found.</Typography>
+
+          {!loadingUsers && users.length === 0 && (
+            <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', my: 4 }}>
+              No users found.
+            </Typography>
           )}
-          {!loadingUsers && !errorUsers && users.length > 0 && (
-            <TableContainer component={Paper} elevation={1} sx={{ mt: 3 }}>
-              <Table aria-label="users table">
+
+          {!loadingUsers && users.length > 0 && (
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }} aria-label="users table">
                 <TableHead>
                   <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Username</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Role</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Created At</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
+                      <TableCell>{user.id}</TableCell>
                       <TableCell>{user.username}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.role}</TableCell>
-                      <TableCell>{user.status}</TableCell>
                       <TableCell>
-                        {user.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="contained"
-                              color="success"
-                              size="small"
-                              sx={{ mr: 1 }}
-                              onClick={() => handleOpenConfirmDialog(user, 'approve')}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              onClick={() => handleOpenConfirmDialog(user, 'reject')}
-                            >
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                        {user.status !== 'pending' && (
-                            <Button
-                                variant="outlined"
-                                color="error"
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: user.status === 'approved' ? 'green' : user.status === 'rejected' ? 'red' : 'orange',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {user.status}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {user.status === 'pending' && (
+                            <>
+                              <Button
                                 size="small"
-                                onClick={() => handleOpenConfirmDialog(user, 'delete')}
-                            >
-                                Delete
-                            </Button>
-                        )}
+                                variant="contained"
+                                color="success"
+                                onClick={() => handleOpenConfirmDialog(user, 'approve')}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="error"
+                                onClick={() => handleOpenConfirmDialog(user, 'reject')}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => handleOpenConfirmDialog(user, 'delete')}
+                          >
+                            Delete
+                          </Button>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -545,101 +746,112 @@ const DashboardPage = () => {
               </Table>
             </TableContainer>
           )}
-          <Dialog
-            open={openConfirmDialog}
-            onClose={handleCloseConfirmDialog}
-            aria-labelledby="confirm-dialog-title"
-            aria-describedby="confirm-dialog-description"
-          >
-            <DialogTitle id="confirm-dialog-title">
-              {actionType === 'approve' ? 'Approve User' : actionType === 'reject' ? 'Reject User' : 'Delete User'}
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText id="confirm-dialog-description">
-                Are you sure you want to {actionType} user "{selectedUser?.username}"? This action cannot be undone.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpenConfirmDialog(false)}>Cancel</Button>
-              <Button onClick={handleConfirmAction} autoFocus color={actionType === 'delete' ? 'error' : 'primary'}>
-                {actionType === 'approve' ? 'Approve' : actionType === 'reject' ? 'Reject' : 'Delete'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Add User Dialog */}
-          <Dialog open={openAddUserDialog} onClose={() => setOpenAddUserDialog(false)}>
-            <DialogTitle>Add New User</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Username"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={newUser.username}
-                onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                margin="dense"
-                label="Email"
-                type="email"
-                fullWidth
-                variant="outlined"
-                value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                margin="dense"
-                label="Password"
-                type="password"
-                fullWidth
-                variant="outlined"
-                value={newUser.password}
-                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                select
-                margin="dense"
-                label="Role"
-                fullWidth
-                variant="outlined"
-                value={newUser.role}
-                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                sx={{ mb: 2 }}
-              >
-                <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="user">User</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-              </TextField>
-              <TextField
-                select
-                margin="dense"
-                label="Status"
-                fullWidth
-                variant="outlined"
-                value={newUser.status}
-                onChange={(e) => setNewUser({ ...newUser, status: e.target.value })}
-                sx={{ mb: 2 }}
-              >
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
-              </TextField>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpenAddUserDialog(false)}>Cancel</Button>
-              <Button onClick={handleAddUser} variant="contained" color="primary">Add User</Button>
-            </DialogActions>
-          </Dialog>
         </Paper>
       )}
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={handleCloseConfirmDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Confirm {actionType.charAt(0).toUpperCase() + actionType.slice(1)}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to {actionType} user "{selectedUser?.username}"?
+            {actionType === 'delete' && ' This action cannot be undone.'}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmAction} color="primary" autoFocus>
+            {actionType.charAt(0).toUpperCase() + actionType.slice(1)}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add User Dialog */}
+      <Dialog
+        open={openAddUserDialog}
+        onClose={() => setOpenAddUserDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Add New User</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Username"
+                value={newUser.username}
+                onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={newUser.role}
+                  label="Role"
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                >
+                  <MenuItem value="user">User</MenuItem>
+                  <MenuItem value="admin">Admin</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={newUser.status}
+                  label="Status"
+                  onChange={(e) => setNewUser({ ...newUser, status: e.target.value })}
+                >
+                  <MenuItem value="pending">Pending</MenuItem>
+                  <MenuItem value="approved">Approved</MenuItem>
+                  <MenuItem value="rejected">Rejected</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddUserDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleAddUser} color="primary" variant="contained">
+            Add User
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
 
-export default DashboardPage; 
+export default DashboardPage;
+
