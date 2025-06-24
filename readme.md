@@ -179,6 +179,8 @@ See `frontend/Ups_Capstone_Project_frontend/package.json` for the full list:
 ---
 
 ## Project Demo
+### Click on the preview to view the PPT in the repository
 
-[![Presentation Preview](Demo/ups_ppt_preview.png)](Demo/UPS Capstone Project PPT.pdf)
-[Download Project Demo Presentation](Demo/UPS Capstone Project PPT.pdf)
+[![Presentation Preview](Demo/ups_ppt_preview.png)](https://github.com/KUMAR-SHREYAS/united/blob/main/Demo/UPS%20Capstone%20Project%20PPT.pdf)
+
+[Download Project Demo Presentation](https://github.com/KUMAR-SHREYAS/united/blob/main/Demo/UPS%20Capstone%20Project%20PPT.pdf)
