@@ -27,6 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { useAuth } from '../auth/AuthContext'; // Import useAuth
 import { API_BASE_URL } from '../config';
 // import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 // import { mockOcrApi } from '../utils/api';
@@ -39,6 +40,8 @@ const UploadPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const { user, isAdmin, isApproved } = useAuth(); // Get user, isAdmin, isApproved from AuthContext
+  
   const [processedResults, setProcessedResults] = useState([]);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -49,6 +52,10 @@ const UploadPage = () => {
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Analytics', path: '/analytics' },
   ];
+  if (isAdmin) {
+    navTabs.push({ label: 'User Management', path: '/dashboard/users' });
+  }
+
 
   const [currentTab, setCurrentTab] = useState(navTabs[0].path);
 
@@ -211,7 +218,7 @@ const UploadPage = () => {
       <Box mt={4}>
         <Typography variant="h4">Upload Labels</Typography>
         <Typography variant="body2" color="textSecondary" mt={1}>
-          Only JPG and PNG files are allowed. Max size: 5MB. Max upload limit: {MAX_BATCH_UPLOAD_LIMIT} files.
+          Only JPG/PNG/JPEG files are allowed. Max size: 5MB. Max upload limit: {MAX_BATCH_UPLOAD_LIMIT} files
         </Typography>
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
         {successMessage && <Alert severity="success" sx={{ mt: 2 }}>{successMessage}</Alert>}
