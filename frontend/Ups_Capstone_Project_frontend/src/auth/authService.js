@@ -1,12 +1,14 @@
 import { API_BASE_URL } from '../config';
 
-const API_URL = `${API_BASE_URL}/auth`; // Base URL for your FastAPI authentication endpoints
+// FIXED: The base URL is set directly to API_BASE_URL (which should already be ".../api")
+const API_URL = API_BASE_URL; 
 
 const login = async (username, password) => {
     const details = new URLSearchParams();
     details.append('username', username);
     details.append('password', password);
 
+    // Request path is now correctly: /api/token
     const response = await fetch(`${API_URL}/token`, {
         method: 'POST',
         headers: {
@@ -24,7 +26,8 @@ const login = async (username, password) => {
 };
 
 const register = async (username, email, password) => {
-    const response = await fetch(`${API_URL}/register`, {
+    // Request path is now correctly: /api/register
+    const response = await fetch(`${API_URL}/register`, { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -45,4 +48,4 @@ const authService = {
     register,
 };
 
-export default authService; 
+export default authService;
