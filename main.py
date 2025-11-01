@@ -243,3 +243,13 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the UPS Database API"} 
+
+
+
+
+    
+# TESSERACT_PATH="C:/Program Files/Tesseract-OCR/tesseract.exe"
+# GOOGLE_API_KEY="AIzaSyDcnDisZI_Q5JUOtMGRUNeRz419F3d7F8E"
+# GEMINI_MODEL="gemini-1.5-flash"
+# DATABASE_URL="mysql://avnadmin:AVNS_4s17-b9H_cF7SaPaSZr@mysql-ups-db-ups-db1.c.aivencloud.com:23288/defaultdb?ssl-mode=REQUIRED"
+# SECRET_KEY = "b4f65e79b3c85a98913f1a680fae0bfb786d2cd842befc45fb14f0ec3ee21620"

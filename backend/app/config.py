@@ -1,6 +1,8 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    # Pydantic v2 config: load from .env and ignore unknown env vars
+    model_config = SettingsConfigDict(env_file=".env", extra='ignore')
     TESSERACT_PATH: str
     GOOGLE_API_KEY: str
     GEMINI_MODEL: str = "gemini-1.5-flash"
@@ -71,7 +73,6 @@ JSON Output:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    class Config:
-        env_file = ".env"
+    # (Removed legacy Config class to avoid conflict with model_config in v2)
 
 settings = Settings() 

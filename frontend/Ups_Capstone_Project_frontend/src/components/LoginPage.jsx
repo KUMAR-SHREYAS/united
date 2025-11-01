@@ -41,8 +41,8 @@ function LoginPage() {
     <Container maxWidth="xs">
       <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-        {/* LOGO */}
-        <img
+        {/* LOGO - Temporarily Hidden */}
+        {/* <img
           src="images (1).png"
           alt="PARS Logo"
           style={{
@@ -51,7 +51,7 @@ function LoginPage() {
             marginBottom: '1rem',
             objectFit: 'contain',
           }}
-        />
+        /> */}
 
         {/* APP NAME */}
         <Typography
