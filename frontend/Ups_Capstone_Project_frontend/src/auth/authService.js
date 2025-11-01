@@ -27,7 +27,7 @@ const login = async (username, password) => {
 
 const register = async (username, email, password) => {
     // Request path is now correctly: /api/register
-    const response = await fetch(`${API_URL}/register`, { 
+    const response = await fetch(`${API_URL}/auth/register`, { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
