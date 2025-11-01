@@ -9,7 +9,7 @@ const login = async (username, password) => {
     details.append('password', password);
 
     // Request path is now correctly: /api/token
-    const response = await fetch(`${API_URL}/token/`, {
+    const response = await fetch(`${API_URL}/token`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -27,7 +27,7 @@ const login = async (username, password) => {
 
 const register = async (username, email, password) => {
     // Request path is now correctly: /api/register
-    const response = await fetch(`${API_URL}/auth/register`, { 
+    const response = await fetch(`${API_URL}/register`, { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
