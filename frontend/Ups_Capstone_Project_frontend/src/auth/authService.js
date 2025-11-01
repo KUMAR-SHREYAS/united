@@ -9,7 +9,7 @@ const login = async (username, password) => {
     details.append('password', password);
 
     // Request path is now correctly: /api/token
-    const response = await fetch(`${API_URL}/auth/token/`, {
+    const response = await fetch(`${API_URL}/token/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
